@@ -81,7 +81,7 @@ To send a variable to template, add them into the `context` option. This option 
 <jinja2 context="{'name': Andy, 'age': 8}">
 Hi, my name is {{name}}!
 I am {{age}} years old.
-{% for prev in range(age, 1, -1) %}
+{% for prev in range(age - 1, 0, -1) %}
 The year before I was {{prev}} years old.
 {% endfor %}
 </jinja2>
@@ -92,8 +92,6 @@ Result:
 ```
 Hi, my name is Andy!
 I am 8 years old.
-
-The year before I was 8 years old.
 
 The year before I was 7 years old.
 
@@ -106,6 +104,8 @@ The year before I was 4 years old.
 The year before I was 3 years old.
 
 The year before I was 2 years old.
+
+The year before I was 1 years old.
 ```
 
 ### Extends and includes
