@@ -24,7 +24,7 @@ setup(
     platforms='any',
     install_requires=[
         'foliant>=1.0.8',
-        'foliantcontrib.utils.combined_options>=1.0.1',
+        'foliantcontrib.utils.combined_options>=1.0.3',
         'jinja2'
     ],
     classifiers=[
