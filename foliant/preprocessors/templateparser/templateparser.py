@@ -65,7 +65,9 @@ class Preprocessor(BasePreprocessor):
     }
     engines = get_engines()
     tags = ('template', *engines.keys())
-    tag_params = ('engine', 'context', 'engine_params')  # all other params will be redirected to template
+    tag_params = ('engine',
+                  'context',
+                  'engine_params')  # all other params will be redirected to template
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,7 +76,12 @@ class Preprocessor(BasePreprocessor):
         self.logger.debug(f'Preprocessor inited: {self.__dict__}')
 
     def process_templates(self, content_file: PosixPath or str) -> str:
-
+        """
+        Go through <content_file> and look for template tags.
+        For each tag send the contents to the corresponging template engine
+        along with parameters from tag and config, and <content_file> path.
+        Replace the tag with output from the enginge.
+        """
         def _sub(block) -> str:
             tag_options = Options(self.get_options(block.group('options')),
                                   validators={'engine': validate_in(self.engines.keys())},
@@ -85,7 +92,7 @@ class Preprocessor(BasePreprocessor):
                                       priority='tag')
 
             tag = block.group('tag')
-            if tag == 'template':
+            if tag == 'template':  # if "template" tag is used — engine must be specified
                 if 'engine' not in options:
                     ref = current_filename.relative_to(self.working_dir.absolute())
                     output(f'WARNING [{ref}]: Engine must be specified in the <template> tag. Skipping.',
@@ -96,7 +103,9 @@ class Preprocessor(BasePreprocessor):
                 engine = self.engines[options['engine']]
             else:
                 engine = self.engines[tag]
+            # all unrecognized params are redirected to template engine params
             context = {p: options[p] for p in options if p not in self.tag_params}
+            # add options from "context" param
             context.update(options.get('context', {}))
 
             template = engine(block.group('body'),
@@ -114,9 +123,6 @@ class Preprocessor(BasePreprocessor):
         self.logger.info('Applying preprocessor')
 
         for markdown_file_path in self.working_dir.rglob('*.md'):
-            # with open(markdown_file_path, encoding='utf8') as markdown_file:
-            #     content = markdown_file.read()
-
             processed = self.process_templates(markdown_file_path)
 
             with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:

@@ -3,7 +3,11 @@ from .base import TemplateEngineBase
 
 
 class TemplateEngine(TemplateEngineBase):
-    """Jinja2 template engine"""
+    """
+    Jinja2 template engine.
+    Accepts params:
+    root - path to the loader root.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
