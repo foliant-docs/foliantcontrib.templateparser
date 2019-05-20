@@ -21,6 +21,7 @@ preprocessors:
         context:
             param1: 1008
             param2: 'Kittens'
+        ext_context: context.yml
         param3: 'Puppies'
 ```
 
@@ -33,9 +34,18 @@ preprocessors:
 `context`
 :   dictionary with variables which will be redirected to the template.
 
+`ext_context`
+:   path to YAML- or JSON-file with context dictionary. (relative to current md-file)
+
 _All parameters with other names are also transfered to the template, as if they appeared inside the `context` dictionary. (`param3` in the above example)_
 
 > Please note that even if this may seem convenient, it is preferred to include template variables in the `context` dictionary, as in future more reserved parameters may be added which may conflict with your stray variables.
+
+If some variable names overlap among these methods to supply context, preprocessor uses this priority order:
+
+1. Context dictionary.
+2. Stray variables.
+3. External context file.
 
 ## Usage
 

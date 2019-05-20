@@ -15,7 +15,8 @@ setup(
     name='foliantcontrib.templateparser',
     description=SHORT_DESCRIPTION,
     long_description=LONG_DESCRIPTION,
-    version='1.0.0',
+    long_description_content_type="text/markdown",
+    version='1.0.1',
     author='Daniil Minukhin',
     author_email='ddddsa@gmail.com',
     url='https://github.com/foliant-docs/foliantcontrib.templateparser',
@@ -24,7 +25,8 @@ setup(
     platforms='any',
     install_requires=[
         'foliant>=1.0.8',
-        'foliantcontrib.utils.combined_options>=1.0.3',
+        'foliantcontrib.utils.combined_options>=1.0.4',
+        'foliantcontrib.utils.preprocessor_ext>=1.0.0',
         'jinja2'
     ],
     classifiers=[

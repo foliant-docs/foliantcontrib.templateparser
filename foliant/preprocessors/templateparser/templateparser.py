@@ -3,18 +3,21 @@ Template parser preprocessor for Foliant.
 '''
 
 import pkgutil
+import yaml
 
 import foliant.preprocessors.templateparser.engines
+
 from . import engines
 from importlib import import_module
-from pathlib import Path, PosixPath
-from foliant.preprocessors.base import BasePreprocessor
-from foliant.utils import output
 
 from foliant.preprocessors.utils.combined_options import (Options,
                                                           CombinedOptions,
                                                           validate_in,
-                                                          yaml_to_dict_convertor)
+                                                          yaml_to_dict_convertor,
+                                                          path_convertor)
+from foliant.preprocessors.utils.preprocessor_ext import (BasePreprocessorExt,
+                                                          allow_fail)
+
 
 OptionValue = int or float or bool or str
 
@@ -32,34 +35,7 @@ def get_engines():
     return result
 
 
-def get_context(match, limit=150, full_tag=False):
-    '''
-    Get context of the match object.
-
-    Returns a string with <limit> symbols before match, the match string and
-    <limit> symbols after match.
-
-    If full_tag == False, matched string is limited too: first <limit>/2
-    symbols of match and last <limit>/2 symbols of match.
-    '''
-
-    source = match.string
-    start = max(0, match.start() - limit)  # index of context start
-    end = min(len(source), match.end() + limit)  # index of context end
-    span = match.span()  # indeces of match (start, end)
-    result = '...' if start != 0 else ''  # add ... at beginning if cropped
-    if span[1] - span[0] > limit and not full_tag:  # if tag contents longer than limit
-        bp1 = match.start() + limit // 2
-        bp2 = match.end() - limit // 2
-        result += f'{source[start:bp1]} <...> {source[bp2:end]}'
-    else:
-        result += source[start:end]
-    if end != len(source):  # add ... at the end if cropped
-        result += '...'
-    return result
-
-
-class Preprocessor(BasePreprocessor):
+class Preprocessor(BasePreprocessorExt):
     defaults = {
         'engine_params': {}
     }
@@ -67,6 +43,7 @@ class Preprocessor(BasePreprocessor):
     tags = ('template', *engines.keys())
     tag_params = ('engine',
                   'context',
+                  'ext_context',
                   'engine_params')  # all other params will be redirected to template
 
     def __init__(self, *args, **kwargs):
@@ -75,57 +52,52 @@ class Preprocessor(BasePreprocessor):
 
         self.logger.debug(f'Preprocessor inited: {self.__dict__}')
 
-    def process_templates(self, content_file: PosixPath or str) -> str:
+    @allow_fail('Failed to render template.')
+    def process_template_tag(self, block) -> str:
         """
-        Go through <content_file> and look for template tags.
-        For each tag send the contents to the corresponging template engine
-        along with parameters from tag and config, and <content_file> path.
-        Replace the tag with output from the enginge.
+        Function for processing tag. Send the contents to the corresponging
+        template engine along with parameters from tag and config, and
+        <content_file> path. Replace the tag with output from the engine.
         """
-        def _sub(block) -> str:
-            tag_options = Options(self.get_options(block.group('options')),
-                                  validators={'engine': validate_in(self.engines.keys())},
-                                  convertors={'context': yaml_to_dict_convertor,
-                                              'engine_params': yaml_to_dict_convertor})
-            options = CombinedOptions({'config': self.options,
-                                       'tag': tag_options},
-                                      priority='tag')
+        tag_options = Options(self.get_options(block.group('options')),
+                              validators={'engine': validate_in(self.engines.keys())},
+                              convertors={'context': yaml_to_dict_convertor,
+                                          'engine_params': yaml_to_dict_convertor,
+                                          'ext_context': path_convertor})
+        options = CombinedOptions({'config': self.options,
+                                   'tag': tag_options},
+                                  priority='tag')
 
-            tag = block.group('tag')
-            if tag == 'template':  # if "template" tag is used — engine must be specified
-                if 'engine' not in options:
-                    ref = current_filename.relative_to(self.working_dir.absolute())
-                    output(f'WARNING [{ref}]: Engine must be specified in the <template> tag. Skipping.',
-                           quiet=self.quiet)
-                    self.logger.warning(f'[{ref}] Engine not specified in the <template> tag, skipping. Context:'
-                                        '\n' + get_context(block))
-                    return block.string
-                engine = self.engines[options['engine']]
-            else:
-                engine = self.engines[tag]
-            # all unrecognized params are redirected to template engine params
-            context = {p: options[p] for p in options if p not in self.tag_params}
-            # add options from "context" param
-            context.update(options.get('context', {}))
+        tag = block.group('tag')
+        if tag == 'template':  # if "template" tag is used — engine must be specified
+            if 'engine' not in options:
+                self._warning('Engine must be specified in the <template> tag. Skipping.',
+                              self.get_tag_context(block))
+                return block.group(0)
+            engine = self.engines[options['engine']]
+        else:
+            engine = self.engines[tag]
 
-            template = engine(block.group('body'),
-                              context,
-                              options.get('engine_params', {}),
-                              current_filename)
-            return template.build()
-        current_filename = Path(content_file).absolute()
-        with open(content_file, encoding='utf8') as f:
-            content = f.read()
-
-        return self.pattern.sub(_sub, content)
+        context = {}
+        # external context is loaded first, it has lowest priority
+        if 'ext_context' in options:
+            try:
+                context = dict(yaml.load(open((self.current_filepath).parent /
+                                              options['ext_context'], encoding="utf8")))
+            except FileNotFoundError as e:
+                self._warning(f'External context file {options["ext_context"]} not found',
+                              error=e)
+        # all unrecognized params are redirected to template engine params
+        context.update({p: options[p] for p in options if p not in self.tag_params})
+        # add options from "context" param
+        context.update(options.get('context', {}))
+        template = engine(block.group('body'),
+                          context,
+                          options.get('engine_params', {}),
+                          self.current_filepath)
+        return template.build()
 
     def apply(self):
-        self.logger.info('Applying preprocessor')
-
-        for markdown_file_path in self.working_dir.rglob('*.md'):
-            processed = self.process_templates(markdown_file_path)
-
-            with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:
-                markdown_file.write(processed)
+        self._process_tags_for_all_files(self.process_template_tag)
 
         self.logger.info('Preprocessor applied')
