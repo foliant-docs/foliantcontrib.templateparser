@@ -1,3 +1,5 @@
+![](https://img.shields.io/pypi/v/foliantcontrib.templateparser.svg)
+
 # TemplateParser preprocessor for Foliant
 
 Preprocessor which allows to use templates in Foliant source files. Preprocessor now supports only [Jinja2](http://jinja.pocoo.org/) templating engine, but more can be added easily.
