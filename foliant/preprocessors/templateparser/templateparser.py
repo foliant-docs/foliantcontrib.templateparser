@@ -83,7 +83,8 @@ class Preprocessor(BasePreprocessorExt):
         if 'ext_context' in options:
             try:
                 context = dict(yaml.load(open((self.current_filepath).parent /
-                                              options['ext_context'], encoding="utf8")))
+                                              options['ext_context'], encoding="utf8"),
+                                         yaml.Loader))
             except FileNotFoundError as e:
                 self._warning(f'External context file {options["ext_context"]} not found',
                               error=e)
