@@ -122,6 +122,6 @@ The year before I was 1 years old.
 
 ### Extends and includes
 
-Extends and includes work in templates. The path of the extending\included file is relative to the Markdown file where the template lives.
+Extends and includes work in templates. The path of the extending\\included file is relative to the Markdown file where the template lives.
 
-In Jinja2 engine you can override the path of the included\extended files with `root` engine_param. **Note that this param is relative to project root.**
+In Jinja2 engine you can override the path of the included\\extended files with `root` engine_param. **Note that this param is relative to project root.**
