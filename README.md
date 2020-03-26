@@ -83,6 +83,28 @@ I can count to five!
 </template>
 ```
 
+### Integration with metadata
+
+Templates support latest Foliant [metadata](https://foliant-docs.github.io/docs/cli/meta/) functionality. You can find the meta dictionary for current section under `meta` variable inside template:
+
+```html
+<meta status="ready" title="Custom Title" author="John"></meta>
+
+<jinja2>
+Document status: {{ meta.status }}
+
+The document "{{ meta.title }}" is brought to you by {{ meta.author }}
+</jinja2>
+```
+
+Result:
+
+```html
+Document status: ready
+
+The document "Custom Title" is brought to you by John
+```
+
 ### Sending variables to template
 
 To send a variable to template, add them into the `context` option. This option accepts `yaml` dictionary format.

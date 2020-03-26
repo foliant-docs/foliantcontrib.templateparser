@@ -10,6 +10,7 @@ import foliant.preprocessors.templateparser.engines
 from . import engines
 from importlib import import_module
 
+from foliant.meta.generate import load_meta, get_meta_for_chapter
 from foliant.preprocessors.utils.combined_options import (Options,
                                                           CombinedOptions,
                                                           validate_in,
@@ -78,7 +79,11 @@ class Preprocessor(BasePreprocessorExt):
         else:
             engine = self.engines[tag]
 
-        context = {}
+        current_pos = block.start()
+        chapter = get_meta_for_chapter(self.current_filepath)
+        section = chapter.get_section_by_offset(current_pos)
+        context = {'meta': section.data}
+
         # external context is loaded first, it has lowest priority
         if 'ext_context' in options:
             try:
@@ -99,6 +104,7 @@ class Preprocessor(BasePreprocessorExt):
         return template.build()
 
     def apply(self):
+        self.meta = load_meta(self.config.get('chapters', []))
         self._process_tags_for_all_files(self.process_template_tag)
 
         self.logger.info('Preprocessor applied')

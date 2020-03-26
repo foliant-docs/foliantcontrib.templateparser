@@ -1,3 +1,7 @@
+# 1.0.3
+
+-    Now meta dictionary is available inside templates under `meta` variable.
+
 # 1.0.2
 
 -    support PyYAML 5.1
