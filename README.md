@@ -1,4 +1,4 @@
-![](https://img.shields.io/pypi/v/foliantcontrib.templateparser.svg)
+[![](https://img.shields.io/pypi/v/foliantcontrib.templateparser.svg)](https://pypi.org/project/foliantcontrib.templateparser/)  [![](https://img.shields.io/github/v/tag/foliant-docs/foliantcontrib.templateparser.svg?label=GitHub)](https://github.com/foliant-docs/foliantcontrib.templateparser)
 
 # TemplateParser preprocessor for Foliant
 
@@ -103,6 +103,29 @@ Result:
 Document status: ready
 
 The document "Custom Title" is brought to you by John
+```
+
+You can also find the whole project's `Meta` object under `meta_object` variable inside template:
+
+```html
+<meta status="ready" title="Custom Title" author="John"></meta>
+
+<jinja2>
+List of chapters in this project:
+{% for chapter in meta_object.chapters %}
+* {{ chapter.name }}
+{%- endfor %}
+</jinja2>
+```
+
+Result:
+
+```html
+List of chapters in this project:
+
+* index
+* sub
+* auth
 ```
 
 ### Sending variables to template

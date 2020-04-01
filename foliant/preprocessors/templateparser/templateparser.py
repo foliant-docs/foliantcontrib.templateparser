@@ -82,7 +82,7 @@ class Preprocessor(BasePreprocessorExt):
         current_pos = block.start()
         chapter = get_meta_for_chapter(self.current_filepath)
         section = chapter.get_section_by_offset(current_pos)
-        context = {'meta': section.data}
+        context = {'meta': section.data, 'meta_object': self.meta}
 
         # external context is loaded first, it has lowest priority
         if 'ext_context' in options:

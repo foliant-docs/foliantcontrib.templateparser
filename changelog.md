@@ -1,6 +1,7 @@
 # 1.0.3
 
 -    Now meta dictionary is available inside templates under `meta` variable.
+-    Project's meta object is available inside templates under `meta_object` variable.
 
 # 1.0.2
 
