@@ -37,7 +37,7 @@ preprocessors:
 :   dictionary with variables which will be redirected to the template.
 
 `ext_context`
-:   path to YAML- or JSON-file with context dictionary. (relative to current md-file)
+:   path to YAML- or JSON-file with context dictionary. (relative to current md-file), or URL to such file on the remote server.
 
 _All parameters with other names are also transfered to the template, as if they appeared inside the `context` dictionary. (`param3` in the above example)_
 
@@ -83,6 +83,88 @@ I can count to five!
 </template>
 ```
 
+### Sending variables to template
+
+To send a variable to template, add them into the `context` option. This option accepts `yaml` dictionary format.
+
+```html
+<jinja2 context="{'name': Andy, 'age': 8}">
+Hi, my name is {{name}}!
+I am {{ age }} years old.
+{% for prev in range(age - 1, 0, -1) %}
+The year before I was {{prev}} years old.
+{% endfor %}
+</jinja2>
+```
+
+Result:
+
+```
+Hi, my name is Andy!
+I am 8 years old.
+
+The year before I was 7 years old.
+
+The year before I was 6 years old.
+
+The year before I was 5 years old.
+
+The year before I was 4 years old.
+
+The year before I was 3 years old.
+
+The year before I was 2 years old.
+
+The year before I was 1 years old.
+```
+
+Also, you can supply a yaml-file with variables in an `ext_context` parameter:
+
+```
+<jinja2 ext_context="swagger.yaml">
+Swagger file version: {{ swagger }}
+Base path: {{ base_path }}
+...
+</jinja2>
+```
+
+**Pro tip #1**
+
+All context variables are also available in the `_foliant_context` dictionary. It may be handy if you don't know at design-time which key names are supplied in the external context file:
+
+```
+<jinja2 ext_context="customers.yml">
+{% for name, data in _foliant_context.items() %}
+
+# Customer {{ name }}
+
+Purchase: {{ data['purchase'] }}
+Order id: {{ data['order_id'] }}
+
+{% endfor %}
+</jinja2>
+```
+
+**Pro tip #2**
+
+If your context file is inside private git repository, you can utilize the power of [Includes](https://foliant-docs.github.io/docs/preprocessors/includes/) preprocessor to retrieve it.
+
+1. Create a file in your `src` dir, for example, `context.md` (`md` extension is obligatory, includes only process markdown files).
+2. Add an includes tag:
+
+```
+<include repo_url="https://my_login:my_password@my.git.org/my_repo.git" path="path/to/file.yml"></include>
+```
+3. And supply path to this file in your `ext_context` param:
+
+```
+<jinja2 ext_context="context.md">
+```
+
+**Pro tip #3**
+
+If data inside your external context file is not a dictionary, it will be available inside template under `context` variable (or `_foliant_context['context']`).
+
 ### Integration with metadata
 
 Templates support latest Foliant [metadata](https://foliant-docs.github.io/docs/cli/meta/) functionality. You can find the meta dictionary for current section under `meta` variable inside template:
@@ -126,43 +208,6 @@ List of chapters in this project:
 * index
 * sub
 * auth
-```
-
-### Sending variables to template
-
-To send a variable to template, add them into the `context` option. This option accepts `yaml` dictionary format.
-
-> Please note that foliant doesn't support multiline tag options yet, so use one-line dictionary format {'key1': value1, ...}
-
-```html
-<jinja2 context="{'name': Andy, 'age': 8}">
-Hi, my name is {{name}}!
-I am {{age}} years old.
-{% for prev in range(age - 1, 0, -1) %}
-The year before I was {{prev}} years old.
-{% endfor %}
-</jinja2>
-```
-
-Result:
-
-```
-Hi, my name is Andy!
-I am 8 years old.
-
-The year before I was 7 years old.
-
-The year before I was 6 years old.
-
-The year before I was 5 years old.
-
-The year before I was 4 years old.
-
-The year before I was 3 years old.
-
-The year before I was 2 years old.
-
-The year before I was 1 years old.
 ```
 
 ### Extends and includes

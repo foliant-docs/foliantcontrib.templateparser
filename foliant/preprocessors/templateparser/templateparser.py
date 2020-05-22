@@ -4,6 +4,7 @@ Template parser preprocessor for Foliant.
 
 import pkgutil
 import yaml
+import urllib
 
 import foliant.preprocessors.templateparser.engines
 
@@ -53,6 +54,32 @@ class Preprocessor(BasePreprocessorExt):
 
         self.logger.debug(f'Preprocessor inited: {self.__dict__}')
 
+    def load_external_context(self, path: str, options) -> dict:
+        '''
+        Load context for template from a yaml-file.
+        `path` may be a path to yaml-file relative to current markdown-file or
+        a link to file on remote server
+        '''
+        if path.startswith('http'):
+            filename = self.working_dir / f'template_context'
+            self.logger.debug(f'Downloading context from {path} ({filename})')
+            try:
+                urllib.request.urlretrieve(path, filename)
+            except (urllib.error.URLError, urllib.error.HTTPError) as e:
+                self._warning(f'Cannot retrieve external context over url {path}.',
+                              error=e)
+                return {}
+        else:
+            filename = self.current_filepath.parent / options['ext_context']
+            if not filename.exists():
+                self._warning(f'External context file {path} not found')
+                return {}
+        result = yaml.load(open(filename, encoding="utf8"), yaml.Loader)
+        if isinstance(result, dict):
+            return result
+        else:
+            return {'context': result}
+
     @allow_fail('Failed to render template.')
     def process_template_tag(self, block) -> str:
         """
@@ -61,10 +88,7 @@ class Preprocessor(BasePreprocessorExt):
         <content_file> path. Replace the tag with output from the engine.
         """
         tag_options = Options(self.get_options(block.group('options')),
-                              validators={'engine': validate_in(self.engines.keys())},
-                              convertors={'context': yaml_to_dict_convertor,
-                                          'engine_params': yaml_to_dict_convertor,
-                                          'ext_context': path_convertor})
+                              validators={'engine': validate_in(self.engines.keys())})
         options = CombinedOptions({'config': self.options,
                                    'tag': tag_options},
                                   priority='tag')
@@ -86,13 +110,7 @@ class Preprocessor(BasePreprocessorExt):
 
         # external context is loaded first, it has lowest priority
         if 'ext_context' in options:
-            try:
-                context = dict(yaml.load(open((self.current_filepath).parent /
-                                              options['ext_context'], encoding="utf8"),
-                                         yaml.Loader))
-            except FileNotFoundError as e:
-                self._warning(f'External context file {options["ext_context"]} not found',
-                              error=e)
+            context = self.load_external_context(options['ext_context'], options)
         # all unrecognized params are redirected to template engine params
         context.update({p: options[p] for p in options if p not in self.tag_params})
         # add options from "context" param

@@ -17,4 +17,7 @@ class TemplateEngine(TemplateEngineBase):
     def build(self):
         """Build template with jinja and return resulting string"""
         template = self._env.from_string(self._content)
-        return template.render(**self._context)
+        foliant_context = dict(self._context)
+        if '_foliant_context' in self._context:
+            self._context.pop('_foliant_context')
+        return template.render(_foliant_context=foliant_context, **self._context)
