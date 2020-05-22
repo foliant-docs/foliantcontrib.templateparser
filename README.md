@@ -152,9 +152,8 @@ If your context file is inside private git repository, you can utilize the power
 1. Create a file in your `src` dir, for example, `context.md` (`md` extension is obligatory, includes only process markdown files).
 2. Add an includes tag:
 
-```
-<include repo_url="https://my_login:my_password@my.git.org/my_repo.git" path="path/to/file.yml"></include>
-```
+**&lt;include repo_url="https://my_login:my_password@my.git.org/my_repo.git" path="path/to/file.yml"></include>**
+
 3. And supply path to this file in your `ext_context` param:
 
 ```
