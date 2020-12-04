@@ -1,3 +1,9 @@
+# 1.0.5
+
+-    Config, backend name and target are now available under `config`, `backend` and `target` variables.
+-    All the above variables along with `meta` and `meta_object` are now moved from `_foliant_context` into `_foliant_vars` variable.
+-    Fix: external context was overriding meta variables.
+
 # 1.0.4
 
 -    All variables, supplied in context, are also available inside the `_foliant_context` variable

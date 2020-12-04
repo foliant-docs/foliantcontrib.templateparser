@@ -128,41 +128,17 @@ Base path: {{ base_path }}
 </jinja2>
 ```
 
-**Pro tip #1**
+### Built-in variables
 
-All context variables are also available in the `_foliant_context` dictionary. It may be handy if you don't know at design-time which key names are supplied in the external context file:
+There are some variables that are available in your template by default:
 
-```
-<jinja2 ext_context="customers.yml">
-{% for name, data in _foliant_context.items() %}
-
-# Customer {{ name }}
-
-Purchase: {{ data['purchase'] }}
-Order id: {{ data['order_id'] }}
-
-{% endfor %}
-</jinja2>
-```
-
-**Pro tip #2**
-
-If your context file is inside private git repository, you can utilize the power of [Includes](https://foliant-docs.github.io/docs/preprocessors/includes/) preprocessor to retrieve it.
-
-1. Create a file in your `src` dir, for example, `context.md` (`md` extension is obligatory, includes only process markdown files).
-2. Add an includes tag:
-
-**&lt;include repo_url="https://my_login:my_password@my.git.org/my_repo.git" path="path/to/file.yml"></include>**
-
-3. And supply path to this file in your `ext_context` param:
-
-```
-<jinja2 ext_context="context.md">
-```
-
-**Pro tip #3**
-
-If data inside your external context file is not a dictionary, it will be available inside template under `context` variable (or `_foliant_context['context']`).
+- `_foliant_context` — dictionary with all user-defined variables, from tag parameters, `context` or `ext_context` variables,
+- `_foliant_vars` — dictionary with all variables mentioned below (in case of name collisions),
+- `meta` — dictionary with current chapter's metadata, details in the next chapter,
+- `meta_object` — project's meta object, details in the next chapter,
+- `config` — Foliant project config,
+- `target` — current target,
+- `backend` — current backend.
 
 ### Integration with metadata
 
@@ -214,3 +190,41 @@ List of chapters in this project:
 Extends and includes work in templates. The path of the extending\\included file is relative to the Markdown file where the template lives.
 
 In Jinja2 engine you can override the path of the included\\extended files with `root` engine_param. **Note that this param is relative to project root.**
+
+### Pro tips
+
+**Pro tip #1**
+
+All context variables are also available in the `_foliant_context` dictionary. It may be handy if you don't know at design-time which key names are supplied in the external context file:
+
+```
+<jinja2 ext_context="customers.yml">
+{% for name, data in _foliant_context.items() %}
+
+# Customer {{ name }}
+
+Purchase: {{ data['purchase'] }}
+Order id: {{ data['order_id'] }}
+
+{% endfor %}
+</jinja2>
+```
+
+**Pro tip #2**
+
+If your context file is inside private git repository, you can utilize the power of [Includes](https://foliant-docs.github.io/docs/preprocessors/includes/) preprocessor to retrieve it.
+
+1. Create a file in your `src` dir, for example, `context.md` (`md` extension is obligatory, includes only process markdown files).
+2. Add an includes tag:
+
+**&lt;include repo_url="https://my_login:my_password@my.git.org/my_repo.git" path="path/to/file.yml"></include>**
+
+3. And supply path to this file in your `ext_context` param:
+
+```
+<jinja2 ext_context="context.md">
+```
+
+**Pro tip #3**
+
+If data inside your external context file is not a dictionary, it will be available inside template under `context` variable (or `_foliant_context['context']`).
