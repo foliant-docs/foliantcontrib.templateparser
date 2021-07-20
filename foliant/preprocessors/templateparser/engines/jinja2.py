@@ -1,5 +1,6 @@
-from jinja2 import FileSystemLoader, Environment
 from .base import TemplateEngineBase
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
 
 class TemplateEngine(TemplateEngineBase):

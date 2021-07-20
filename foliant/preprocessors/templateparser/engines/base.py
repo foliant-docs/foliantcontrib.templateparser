@@ -1,4 +1,5 @@
-from pathlib import Path, PosixPath
+from pathlib import Path
+from pathlib import PosixPath
 
 
 class TemplateEngineBase:

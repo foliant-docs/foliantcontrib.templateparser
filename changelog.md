@@ -1,3 +1,7 @@
+# 1.0.6
+
+-    New utils module.
+
 # 1.0.5
 
 -    Config, backend name and target are now available under `config`, `backend` and `target` variables.

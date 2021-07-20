@@ -3,18 +3,19 @@ Template parser preprocessor for Foliant.
 '''
 
 import pkgutil
-import yaml
 import urllib
+import yaml
 
 from . import engines
 from importlib import import_module
 
-from foliant.meta.generate import load_meta, get_meta_for_chapter
-from foliant.preprocessors.utils.combined_options import (Options,
-                                                          CombinedOptions,
-                                                          validate_in)
-from foliant.preprocessors.utils.preprocessor_ext import (BasePreprocessorExt,
-                                                          allow_fail)
+from foliant.contrib.combined_options import CombinedOptions
+from foliant.contrib.combined_options import Options
+from foliant.contrib.combined_options import validate_in
+from foliant.meta.generate import get_meta_for_chapter
+from foliant.meta.generate import load_meta
+from foliant.preprocessors.utils.preprocessor_ext import BasePreprocessorExt
+from foliant.preprocessors.utils.preprocessor_ext import allow_fail
 
 
 OptionValue = int or float or bool or str
